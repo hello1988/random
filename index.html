@@ -1,0 +1,174 @@
+﻿<html>
+<head>
+	<meta charset="UTF-8">
+	
+	<title>抽乾爹之頁</title>
+	
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+
+	<style>
+	body
+	{
+		margin-left:10%;
+		font-size:18px;
+	}
+	#fathers 
+	{
+		border-collapse: collapse;
+		width:50%;
+	}
+
+	.numInput
+	{
+		max-width:60px;
+		width:100%;
+		text-align : center;
+	}
+	
+	.nameInput
+	{
+		max-width:900px;
+		text-align : left;
+	}
+	
+	table, td, th 
+	{
+		border: 1px solid black;
+	}
+	
+	td, th
+	{
+		text-align : center;
+		height:25px;
+	}
+	</style>
+	<script>
+	
+		$(document).ready
+		(
+			function()
+			{
+				$("#fatherBtn").click(addFather);
+				$("#randomBtn").click(startRandom);
+			}
+		);
+		
+		var g_fatherNum = 0;
+		function addFather(e)
+		{
+			var fatherName = $("#fatherName").val();
+			var addElement=
+				"<tr>"+
+					String.format("<td><label id='name{0}'>{1}</label></td>",g_fatherNum,fatherName)+
+					String.format("<td><input type='text' class='numInput' id='subscribe{0}' value='1'></td>",g_fatherNum)+
+					String.format("<td><input type='text' class='numInput' id='huiWeight{0}' value='0'></td>",g_fatherNum)+
+				"</tr>";
+			
+			$("#fathers").append(addElement);
+			
+			$("#fatherName").val("");
+			g_fatherNum++;
+		}
+		
+		function startRandom(e)
+		{
+			$("#result").empty();
+			var baseWeight = parseInt( $("#bsaeWeight").val() );
+			var addWeight = parseInt( $("#addWeight").val() );
+			var fatherList = new Array();
+			var nameSet = new Set();
+			for (var index=0;index < g_fatherNum;index++)
+			{			
+				var name = $("#name"+index).text();
+				if( nameSet.has(name) ){continue;}
+				
+				var subscribe = parseInt( $("#subscribe"+index).val() );
+				var huiWeight = parseInt( $("#huiWeight"+index).val() );
+				if ( subscribe <= 0 ){continue;}
+				
+				var weight = baseWeight + (subscribe-1)*addWeight + huiWeight;
+				if ( weight <= 0 ){continue;}
+				
+				fatherList.push( {"name":name,"weight":weight} );
+				nameSet.add(name);
+			}
+			
+			var count = fatherList.length;
+			for (var index=0;index < count;index++)
+			{
+				outputFather( fatherList );
+			}
+			
+		}
+		
+		function outputFather( fatherList )
+		{
+			var totalWeight = 0;
+			for( var index=0;index < fatherList.length;index++ )
+			{
+				totalWeight += fatherList[index].weight;
+			}
+			
+			var popIndex = -1;
+			var seed = Math.floor((Math.random() * totalWeight));
+			for( var index=0;index < fatherList.length;index++ )
+			{
+				if( (seed-fatherList[index].weight) < 0 )
+				{
+					popIndex = index;
+					break;
+				}
+				
+				seed -= fatherList[index].weight;
+			}
+			
+			
+			$("#result").append(String.format("<label>{0}</label></br>",fatherList[popIndex].name));
+			fatherList.splice(popIndex, 1);
+		}
+	</script>
+	<script>
+	String.format = function() 
+	{
+		// The string containing the format items (e.g. "{0}")
+		// will and always has to be the first argument.
+		var theString = arguments[0];
+
+		// start with the second argument (i = 1)
+		for (var i = 1; i < arguments.length; i++) {
+			// "gm" = RegEx options for Global search (more than one instance)
+			// and for Multiline search
+			var regEx = new RegExp("\\{" + (i - 1) + "\\}", "gm");
+			theString = theString.replace(regEx, arguments[i]);
+		}
+
+		return theString;
+	}
+	</script>
+</head>
+<body>
+	<h3>參數設定</h3>
+	基礎權重 : <input type="text" class="numInput" id="bsaeWeight" value="10"></br>
+	每次訂閱增加權重 : <input type="text" class="numInput" id="addWeight" value="1">
+	</br>
+	</br>
+	<b>乾爹名單</b></br>
+	<table id="fathers">
+		<tr>
+			<th>乾爹</th>
+			<th>訂閱次數</th>
+			<th>Hui之加成</th>
+		</tr>
+	</table>
+	
+	<input type="text" class="nameInput" id="fatherName" value="">
+	<button id="fatherBtn" >新增乾爹</button></br></br>
+	
+	<button id="randomBtn" >抽乾爹</button>
+	<hr>
+	<div id="result">
+	</div>
+</body>
+</html>
